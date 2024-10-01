@@ -16,22 +16,28 @@ Key features of the architecture include:
 - **Patch token processing**: Images are split into patches that are processed sequentially by the LSTM layers.
 - **Parallelizable matrix memory**: Enhances computational efficiency and scalability.
 
+### Configuration
+- **Image size**: 32x32
+- **Patch size**: 8x8
+- **Embedding dimension**: 192
+- **m_lstm layers**: 4
+
 For more detailed information, you can refer to [Vision LSTM Paper](https://brandstetter-johannes.github.io/publication/alkin-2024-vision-lstm/)【10†source】【11†source】.
 
 ## Results
 The performance of the model on MNIST and CIFAR datasets is summarized below:
 
-| Dataset    | Model          | Accuracy (%) |
-|------------|----------------|--------------|
-| MNIST      | Vision LSTM    | 99.1         |
-| CIFAR-10   | Vision LSTM    | 88.3         |
+| Dataset    | Model          | Test Accuracy (%) |
+|------------|----------------|-------------------|
+| MNIST      | Vision LSTM    | 99.1              |
+| CIFAR-10   | Vision LSTM    | 88.3              |
 
 The results demonstrate that the ViL model achieves state-of-the-art performance on MNIST and performs competitively on CIFAR-10, showcasing its versatility across both grayscale and color image tasks.
 
 ## How to Run the Code
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/vision-lstm.git
+   git clone https://github.com/Manuelnkegoum-8/vision-lstm.git
    ```
 2. Install the required dependencies:
    ```bash
@@ -39,11 +45,11 @@ The results demonstrate that the ViL model achieves state-of-the-art performance
    ```
 3. Train the model:
    ```bash
-   python train.py --dataset mnist
+   python training.py --dataset mnist
    ```
    For CIFAR, use:
    ```bash
-   python train.py --dataset cifar
+   python training.py --dataset cifar
    ```
 
 ## References
