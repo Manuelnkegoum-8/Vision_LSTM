@@ -21,6 +21,7 @@ parser = argparse.ArgumentParser(description='IMAGE CLASSIFICATION WITH VISION L
 # Data args
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N', help='number of data loading workers (default: 4)')
 parser.add_argument('--freq', default=10, type=int, metavar='N', help='log frequency (by iteration)')
+parser.add_argument('--dataset', default='mnist', type=str, metavar='N', help='dataset')
 
 
 # Model parameters
@@ -67,8 +68,10 @@ else:
 if __name__ == '__main__':
     
 
-    train_dataset, val_dataset  = create_mnist_datasets(height,width)
-
+    if args.dataset == 'mnist':
+        train_dataset, val_dataset  = create_mnist_datasets(height,width)
+    else:
+        train_dataset, val_dataset  = create_cifar_datasets(height,width)
     num_workers = args.workers
     # Create TensorDataset and DataLoader
     val_loader =  DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
