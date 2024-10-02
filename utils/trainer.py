@@ -22,6 +22,7 @@ def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed
             optimizer.zero_grad()
             images, labels = data
             bs = images.size(0)
+            images = images.to(device)
             labels = labels.to(device)
             with autocast(enabled=mixed_prec):
                 preds = model(images)

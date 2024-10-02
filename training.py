@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     model = ViL(config)
     total_params = sum(p.numel() for p in model.parameters())
-
+    print(device)
     # Print the number of parameters
     print(f"Number of parameters: {total_params}")
     model = model.to(device)

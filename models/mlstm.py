@@ -129,11 +129,13 @@ class mLSTM_block(nn.Module):
         self.dropout = nn.Dropout(0.2)
         self.id = nn.Identity()
     
-    def forward(self,x,use_conv=False):
+    def forward(self,x,use_conv=False,flip=False):
         inputs = x.clone()
         inputs = self.first_norm(inputs)
         inputs_a = self.mlp1(inputs)
         inputs_b = self.swish(self.mlp2(inputs))
+        if flip:
+            inputs_a = torch.flip(inputs_a,dims=(1,))
         if use_conv:
             qk = self.causal_conv(inputs_a.permute(0,2,1)).permute(0,2,1)
         else:
@@ -144,9 +146,11 @@ class mLSTM_block(nn.Module):
         v = self.block_v(inputs_a)
         out1 = self.cell(q,k,v)
         out1 = out1 + self.learnable_skip*qk
+        if flip:
+            out1 = torch.flip(out1,dims=(1,))
         out1 = out1 * inputs_b
         out = self.dropout(self.final_mlp(out1))
-        return out
+        return out+x
     
     def step(self,x,state):
         inputs = x.clone()
