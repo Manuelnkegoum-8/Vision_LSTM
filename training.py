@@ -96,7 +96,6 @@ if __name__ == '__main__':
     # Print the number of parameters
     print(f"Number of parameters: {total_params}")
     model = model.to(device)
-
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     scaler = GradScaler()
     criterion = nn.CrossEntropyLoss().to(device)

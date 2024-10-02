@@ -1,11 +1,14 @@
 
-# Vision LSTM (ViL) - MNIST & CIFAR Classification
-
+# Vision LSTM (ViL) 👁️ 🧠🔧
+[![pytorch version](https://img.shields.io/badge/pytorch-2.1.2-yellow.svg)](https://pypi.org/project/torch/2.1.2-/)
+[![torchvision version](https://img.shields.io/badge/torchvision-0.16.2-yellow.svg)](https://pypi.org/project/torchvision/0.16.2-/)
+[![numpy version](https://img.shields.io/badge/numpy-1.26.4-blue.svg)](https://pypi.org/project/numpy/1.26.4/)
+[![PIL version](https://img.shields.io/badge/PIL-10.2.0-green.svg)](https://pypi.org/project/Pillow/10.2.0/)
 ## Overview
 This project implements a Vision LSTM (ViL) architecture, which adapts Long Short-Term Memory (LSTM) for computer vision tasks. ViL extends traditional LSTMs with scalable and parallel processing capabilities to handle the challenges of vision data, particularly sequences of image patches, and integrates both top-down and bottom-up processing flows.
 
 The model was trained and tested on two datasets:
-1. **MNIST**: Handwritten digit classification.
+1. **MNIST**: Handwritten digit classification for 10 epochs
 2. **CIFAR**: Object classification in 32x32 color images.
 
 ## Architecture
@@ -16,23 +19,7 @@ Key features of the architecture include:
 - **Patch token processing**: Images are split into patches that are processed sequentially by the LSTM layers.
 - **Parallelizable matrix memory**: Enhances computational efficiency and scalability.
 
-### Configuration
-- **Image size**: 32x32
-- **Patch size**: 8x8
-- **Embedding dimension**: 192
-- **m_lstm layers**: 4
-
-For more detailed information, you can refer to [Vision LSTM Paper](https://brandstetter-johannes.github.io/publication/alkin-2024-vision-lstm/)【10†source】【11†source】.
-
-## Results
-The performance of the model on MNIST and CIFAR datasets is summarized below:
-
-| Dataset    | Model          | Test Accuracy (%) |
-|------------|----------------|-------------------|
-| MNIST      | Vision LSTM    | 99.1              |
-| CIFAR-10   | Vision LSTM    | 88.3              |
-
-The results demonstrate that the ViL model achieves state-of-the-art performance on MNIST and performs competitively on CIFAR-10, showcasing its versatility across both grayscale and color image tasks.
+For more detailed information, you can refer to [Vision LSTM Paper](https://brandstetter-johannes.github.io/publication/alkin-2024-vision-lstm/)
 
 ## How to Run the Code
 1. Clone the repository:
@@ -51,6 +38,29 @@ The results demonstrate that the ViL model achieves state-of-the-art performance
    ```bash
    python training.py --dataset cifar
    ```
+
+
+
+
+## Results
+
+### Configuration
+- **Image size**: 32x32
+- **Patch size**: 8x8
+- **Embedding dimension**: 192
+- **m_lstm layers**: 4
+- **batch size**: 256
+
+The performance of the model on MNIST and CIFAR datasets is summarized below:
+
+| Dataset    | Model          | Test Accuracy (%) |
+|------------|----------------|-------------------|
+| MNIST      | Vil Tiny       | 97.33             |
+| CIFAR-10  | Vil Tiny       | 88.3              |
+
+The results demonstrate that the ViL model achieves state-of-the-art performance on MNIST and performs competitively on CIFAR-10, showcasing its versatility across both grayscale and color image tasks.
+
+
 
 ## References
 - [Vision LSTM Paper](https://brandstetter-johannes.github.io/publication/alkin-2024-vision-lstm/)

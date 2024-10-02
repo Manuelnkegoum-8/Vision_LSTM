@@ -13,9 +13,9 @@ class ViL_layer(nn.Module):
         self.swish = nn.SiLU()
         self.id = nn.Identity()
         self.block = mLSTM_block(dim,heads)
-        self.proj_1 = feedforward(dim,mlp_dim)
-        self.proj_2 = feedforward(dim,mlp_dim)
-        self.proj_3 = feedforward(dim,mlp_dim)
+        self.proj_1 = nn.Linear(dim,dim)
+        self.proj_2 = nn.Linear(dim,dim)
+        self.proj_3 = nn.Linear(dim,dim)
         self.dropout = nn.Dropout(0.2)
     
     def forward(self,x,flip=False):

@@ -3,19 +3,16 @@ import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2  # Using the newer v2 transforms
+from torchvision.transforms import AutoAugment, AutoAugmentPolicy
+
+# Define CIFAR10Policy transformations
 
 def create_mnist_datasets(height,width):
-    #imagenet_mean = [0.485, 0.456, 0.406]
     imagenet_mean = [0.5,0.5,0.5]
     imagenet_std = [0.5,0.5,0.5]
-    #imagenet_std = [0.229, 0.224, 0.225]
     # Training transforms
     train_transform = v2.Compose([
         v2.Resize((height,width)),  # Resize to slightly larger size for RandomResizedCrop
-        #v2.RandomResizedCrop((height,width), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC),
-        #v2.RandomHorizontalFlip(p=0.5),
-        #v2.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
-        #v2.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0)),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=imagenet_mean, std=imagenet_std) 
@@ -23,7 +20,6 @@ def create_mnist_datasets(height,width):
     # Test transforms
     test_transform = v2.Compose([
         v2.Resize((height,width), interpolation=transforms.InterpolationMode.BICUBIC),
-        #v2.CenterCrop((height,width)),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=imagenet_mean, std=imagenet_std)
@@ -36,17 +32,13 @@ def create_mnist_datasets(height,width):
 
 
 def create_cifar_datasets(height,width):
-    #imagenet_mean = [0.485, 0.456, 0.406]
-    imagenet_mean = [0.5,0.5,0.5]
-    imagenet_std = [0.5,0.5,0.5]
-    #imagenet_std = [0.229, 0.224, 0.225]
+    imagenet_mean = [0.485, 0.456, 0.406]
+    imagenet_std = [0.229, 0.224, 0.225]
     # Training transforms
     train_transform = v2.Compose([
         v2.Resize((height,width)),  # Resize to slightly larger size for RandomResizedCrop
-        v2.RandomResizedCrop((height,width), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC),
         v2.RandomHorizontalFlip(p=0.5),
-        v2.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
-        v2.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0)),
+        v2.AutoAugment(policy=AutoAugmentPolicy.CIFAR10),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=imagenet_mean, std=imagenet_std) 
@@ -54,7 +46,7 @@ def create_cifar_datasets(height,width):
     # Test transforms
     test_transform = v2.Compose([
         v2.Resize((height,width), interpolation=transforms.InterpolationMode.BICUBIC),
-        v2.ToImage(),
+        v2.ToImage(), 
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=imagenet_mean, std=imagenet_std)
     ])
