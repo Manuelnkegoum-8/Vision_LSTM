@@ -10,7 +10,7 @@ class ViL(nn.Module):
         super(ViL,self).__init__()
         self.layers = nn.ModuleList()
         for i in range(config.m_layers):
-            block = mLSTM_block(config.dim,config.heads)
+            block = mLSTM_block(config.dim,config.qk_size)
             self.layers.append(block)
         self.patch_embedding = patch_embedding( height=config.height,
                                                 width=config.width,
@@ -30,3 +30,9 @@ class ViL(nn.Module):
         out = 0.5*(x[:,0,:]+x[:,-1,:])
         out = self.fc(out)
         return out
+    
+
+    def no_weight_decay(self):
+            no_decay = [p for n, p in self.named_parameters() if 'pos_embedding' in n]
+            decay = [p for n, p in self.named_parameters() if 'pos_embedding' not in n]
+            return no_decay, decay

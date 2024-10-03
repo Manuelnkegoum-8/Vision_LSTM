@@ -25,7 +25,7 @@ parser.add_argument('--dataset', default='mnist', type=str, metavar='N', help='d
 
 
 # Model parameters
-parser.add_argument('--heads', default=4, type=int, help='number of heads')
+parser.add_argument('--qk_size', default=4, type=int, help='number of heads in m_lstm cell')
 parser.add_argument('--classes', default=10, type=int, help='number of classes')
 parser.add_argument('--width', default=224, type=int, help='image width')
 parser.add_argument('--height', default=224, type=int, help='image height')
@@ -40,16 +40,16 @@ parser.add_argument('--dropout', default=0.2, type=float, help='embedding dim of
 parser.add_argument('--epochs', default=20, type=int, metavar='N', help='number of total epochs to run')
 parser.add_argument('--amp', default=False, type=bool, metavar='N', help='mixed precision')
 
-parser.add_argument('--warmup', default=5, type=int, metavar='N', help='number of warmup epochs')
+parser.add_argument('--warmup', default=2, type=int, metavar='N', help='number of warmup epochs')
 parser.add_argument('-b', '--batch_size', default=16, type=int, metavar='N', help='mini-batch size (default: 128)', dest='batch_size')
 parser.add_argument('--lr', default=0.001, type=float, help='initial learning rate')
-parser.add_argument('--weight_decay', default=0.1, type=float, help='weight decay (default: 1e-4)')
+parser.add_argument('--weight_decay', default=0.05, type=float, help='weight decay (default: 1e-4)')
 parser.add_argument('--resume', default=False, help='Version')
 
 args = parser.parse_args()
 lr = args.lr
 weight_decay = args.weight_decay
-dim, heads = args.dim, args.heads
+dim, qk_size = args.dim, args.qk_size
 m_blocks = args.m_blocks
 s_blocks = args.s_blocks
 dropout = args.dropout
@@ -86,7 +86,7 @@ if __name__ == '__main__':
                          m_layers = m_blocks , 
                          dim = dim , 
                          mlp_dim = dim*2,
-                         heads = heads , 
+                         qk_size = qk_size , 
                          dropout_rate = dropout)
 
 
@@ -96,12 +96,19 @@ if __name__ == '__main__':
     # Print the number of parameters
     print(f"Number of parameters: {total_params}")
     model = model.to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optim_groups = model.no_weight_decay()
+    optimizer = torch.optim.AdamW(
+        (
+            {"weight_decay": weight_decay, "params": optim_groups[1]},
+            {"weight_decay": 0.0, "params": optim_groups[0]},
+        ),
+        lr=lr,
+    )
     scaler = GradScaler()
     criterion = nn.CrossEntropyLoss().to(device)
     num_epochs = args.epochs
     min_steps = ceil(len(train_dataset)/batch_size)
-    scheduler = CosineWithLinearWarmup(optimizer, warmup_steps=min_steps*2, total_steps=int(args.epochs * min_steps),max_lr=lr)
+    scheduler = CosineWithLinearWarmup(optimizer, warmup_steps=min_steps*warmup, total_steps=int(args.epochs * min_steps),max_lr=lr)
 
     # Train the model
     best_loss = float('inf')

@@ -22,6 +22,9 @@ class BlockDiagonalLinear(nn.Module):
         if bias:
             self.bias = nn.Parameter(torch.randn(output_size))
 
+        self._reset_parameters()
+
+        
     def forward(self, x):
         block_diag = torch.block_diag(*self.weights)
         out = torch.matmul(x, block_diag) 
@@ -29,15 +32,20 @@ class BlockDiagonalLinear(nn.Module):
             out = out + self.bias
         return out
 
+    def _reset_parameters(self):
+        # Xavier initialization for weights
+        for weight in self.weights:
+            nn.init.xavier_uniform_(weight)
+
 class CausalConv1d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=4, dilation=1):
+    def __init__(self, in_channels, out_channels, kernel_size=3, dilation=1):
         super(CausalConv1d, self).__init__()
         self.kernel_size = kernel_size
         self.dilation = dilation
         # Causal padding: we pad only on the left side so that the convolution doesn't look ahead
         self.padding = (kernel_size - 1) * dilation
         # Causal convolution layer
-        self.conv1d = nn.Conv1d(in_channels, out_channels, kernel_size, padding=self.padding, dilation=dilation)
+        self.conv1d = nn.Conv1d(in_channels, out_channels, kernel_size, padding=self.padding, dilation=dilation,groups=in_channels)
     
     def forward(self, x):
         # Apply convolution and then trim the extra padding on the right (causal behavior)

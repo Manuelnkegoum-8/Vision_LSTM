@@ -45,7 +45,7 @@ def create_cifar_datasets(height,width):
     ])
     # Test transforms
     test_transform = v2.Compose([
-        v2.Resize((height,width), interpolation=transforms.InterpolationMode.BICUBIC),
+        v2.Resize((height,width)),
         v2.ToImage(), 
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=imagenet_mean, std=imagenet_std)
@@ -58,12 +58,12 @@ def create_cifar_datasets(height,width):
 
 
 class ConfigVil:
-    def __init__(self,n_classes, m_layers, dim,mlp_dim, heads, dropout_rate,height,width,patch_size,channels):
+    def __init__(self,n_classes, m_layers, dim,mlp_dim, qk_size, dropout_rate,height,width,patch_size,channels):
         self.n_classes = n_classes          # Vocabulary size     # Embedding dimension
         self.m_layers = m_layers               # Number of LSTM layers
         self.dim = dim                         # Hidden dimension size
         self.mlp_dim = mlp_dim
-        self.heads = heads                   # Number of heads (for multi-head attention if needed)
+        self.qk_size = qk_size                  # Number of heads (for multi-head attention if needed)
         self.height = height
         self.width = width
         self.patch_size = patch_size

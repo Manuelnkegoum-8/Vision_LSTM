@@ -113,16 +113,17 @@ class mLSTM_cell(nn.Module):
 
 
 class mLSTM_block(nn.Module):
-    def __init__(self,dim=128,heads=4):
+    def __init__(self,dim=128,qk_size=4):
         super(mLSTM_block,self).__init__()
-        self.cell = mLSTM_cell(dim*2,heads)
-        self.block_q = BlockDiagonalLinear(dim*2,dim*2,heads,True)
-        self.block_k = BlockDiagonalLinear(dim*2,dim*2,heads,True)
-        self.block_v = BlockDiagonalLinear(dim*2,dim*2,heads,True)
+        self.heads = (dim*2)//qk_size
+        self.cell = mLSTM_cell(dim*2,qk_size)
+        self.block_q = BlockDiagonalLinear(dim*2,dim*2,self.heads,True)
+        self.block_k = BlockDiagonalLinear(dim*2,dim*2,self.heads,True)
+        self.block_v = BlockDiagonalLinear(dim*2,dim*2,self.heads,True)
         self.first_norm = nn.LayerNorm(dim)
         self.mlp1 = nn.Linear(dim,2*dim)
         self.mlp2 = nn.Linear(dim,2*dim)
-        self.causal_conv = CausalConv1d(dim*2,dim*2,heads)
+        self.causal_conv = CausalConv1d(dim*2,dim*2,qk_size)
         self.swish = SwishActivation(learnable=False)
         self.final_mlp = nn.Linear(dim*2,dim)
         self.learnable_skip = nn.Parameter(torch.ones(dim*2, requires_grad=True))
