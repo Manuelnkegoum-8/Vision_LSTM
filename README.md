@@ -53,10 +53,10 @@ For more detailed information, you can refer to [Vision LSTM Paper](https://bran
 
 The performance of the model on MNIST and CIFAR datasets is summarized below:
 
-| Dataset    | Model          | Test Accuracy (%) |
-|------------|----------------|-------------------|
-| MNIST      | Vil Tiny       | 97.33             |
-| CIFAR-10  | Vil Tiny       | 88.3              |
+| Dataset    | Test Accuracy (%) |
+|------------|-------------------|
+| MNIST      | 97.33             |
+| CIFAR-10   | 95.28             |
 
 The results demonstrate that the ViL model achieves state-of-the-art performance on MNIST and performs competitively on CIFAR-10, showcasing its versatility across both grayscale and color image tasks.
 

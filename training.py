@@ -34,7 +34,9 @@ parser.add_argument('--patch_size', default=16, type=int, help='patch size')
 parser.add_argument('--m_blocks', default=4, type=int, help='number of mlstm blocks')
 parser.add_argument('--s_blocks', default=4, type=int, help='number of slstm blocks')
 parser.add_argument('--dim', default=192, type=int, help='embedding dim of patch')
-parser.add_argument('--dropout', default=0.2, type=float, help='embedding dim of patch')
+parser.add_argument('--dropout', default=0.2, type=float, help='dropout')
+parser.add_argument('--classif_mode', default='bilateral_avg', type=str, help='classif mode')
+
 
 # Optimization hyperparams
 parser.add_argument('--epochs', default=20, type=int, metavar='N', help='number of total epochs to run')
@@ -85,6 +87,7 @@ if __name__ == '__main__':
                         channels = channels ,
                          m_layers = m_blocks , 
                          dim = dim , 
+                         classif= args.classif_mode,
                          mlp_dim = dim*2,
                          qk_size = qk_size , 
                          dropout_rate = dropout)
@@ -92,7 +95,6 @@ if __name__ == '__main__':
 
     model = ViL(config)
     total_params = sum(p.numel() for p in model.parameters())
-    print(device)
     # Print the number of parameters
     print(f"Number of parameters: {total_params}")
     model = model.to(device)

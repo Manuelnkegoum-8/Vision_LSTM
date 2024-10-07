@@ -8,21 +8,19 @@ from torchvision.transforms import AutoAugment, AutoAugmentPolicy
 # Define CIFAR10Policy transformations
 
 def create_mnist_datasets(height,width):
-    imagenet_mean = [0.5,0.5,0.5]
-    imagenet_std = [0.5,0.5,0.5]
     # Training transforms
     train_transform = v2.Compose([
         v2.Resize((height,width)),  # Resize to slightly larger size for RandomResizedCrop
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=imagenet_mean, std=imagenet_std) 
+        #v2.Normalize() 
     ])
     # Test transforms
     test_transform = v2.Compose([
-        v2.Resize((height,width), interpolation=transforms.InterpolationMode.BICUBIC),
+        v2.Resize((height,width)),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=imagenet_mean, std=imagenet_std)
+        #v2.Normalize()
     ])
     # Download and load the training data
     train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=train_transform)
@@ -32,23 +30,20 @@ def create_mnist_datasets(height,width):
 
 
 def create_cifar_datasets(height,width):
-    imagenet_mean = [0.485, 0.456, 0.406]
-    imagenet_std = [0.229, 0.224, 0.225]
     # Training transforms
     train_transform = v2.Compose([
         v2.Resize((height,width)),  # Resize to slightly larger size for RandomResizedCrop
-        v2.RandomHorizontalFlip(p=0.5),
         v2.AutoAugment(policy=AutoAugmentPolicy.CIFAR10),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=imagenet_mean, std=imagenet_std) 
+        #v2.Normalize() 
     ])
     # Test transforms
     test_transform = v2.Compose([
         v2.Resize((height,width)),
         v2.ToImage(), 
         v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=imagenet_mean, std=imagenet_std)
+        #v2.Normalize()
     ])
     # Download and load the training data
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=train_transform)
@@ -58,7 +53,7 @@ def create_cifar_datasets(height,width):
 
 
 class ConfigVil:
-    def __init__(self,n_classes, m_layers, dim,mlp_dim, qk_size, dropout_rate,height,width,patch_size,channels):
+    def __init__(self,n_classes, m_layers, dim,mlp_dim, qk_size, dropout_rate,height,width,patch_size,channels,classif):
         self.n_classes = n_classes          # Vocabulary size     # Embedding dimension
         self.m_layers = m_layers               # Number of LSTM layers
         self.dim = dim                         # Hidden dimension size
@@ -69,6 +64,7 @@ class ConfigVil:
         self.patch_size = patch_size
         self.channels = channels
         self.dropout_rate = dropout_rate       # Dropout rate for regularization
+        self.classif = classif
 
 def calculate_accuracy(predictions, labels):
     """

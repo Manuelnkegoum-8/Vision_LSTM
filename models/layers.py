@@ -6,7 +6,7 @@ from einops.layers.torch import Rearrange
 
 class BlockDiagonalLinear(nn.Module):
     def __init__(self, input_size, output_size, num_blocks=4,bias=True):
-        super(BlockDiagonalLinear, self).__init__()
+        super().__init__()
 
         assert input_size % num_blocks == 0, "Input size must be divisible by the number of blocks"
         assert output_size % num_blocks == 0, "Output size must be divisible by the number of blocks"
@@ -39,7 +39,7 @@ class BlockDiagonalLinear(nn.Module):
 
 class CausalConv1d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, dilation=1):
-        super(CausalConv1d, self).__init__()
+        super().__init__()
         self.kernel_size = kernel_size
         self.dilation = dilation
         # Causal padding: we pad only on the left side so that the convolution doesn't look ahead
