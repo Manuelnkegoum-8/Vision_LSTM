@@ -69,39 +69,6 @@ class mLSTM_cell(nn.Module):
         Htilde = self.group_norm(Htilde).view(bs,seq,self.dim) #mult head group norm
         return Htilde
 
-    ## only for inference
-    def recurrent_forward(self,state,q,k,v):
-        bs,seq,_ = q.size() 
-        in_gate = torch.cat((q,k,v),dim=-1)
-        itilde = self.Wi(in_gate).permute(0,2,1).unsqueeze(-1) #bs*h*1*1
-        ftilde = self.Wf(in_gate).permute(0,2,1).unsqueeze(-1) # bs*h*1*1
-
-        if m is None:
-            c = torch.zeros(size=(bs,self.heads,self.head_dim,self.head_dim), device=q.device)
-            n = torch.zeros(size=(B, self.heads,self.head_dim,1), device=q.device)
-            m = torch.zeros(size=(B, self.heads, 1, 1), device=q.device)
-        else:
-            c,n,m = state
-        
-
-        log_f = F.logsigmoid(ftilde)
-        mt = torch.max(log_f+m,itilde) #bs*h*1*1
-        it = torch.exp(itilde-mt)
-        ft = torch.exp(log_f+m-mt)
-        queries = q.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxh*Txdim
-        keys = k.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxhxTxdim
-        values = v.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxhxTxdim
-        queries = queries.squeeze(2).unsqueeze(-1) #make it bs*h*dim*1
-        keys = keys.squeeze(2).unsqueeze(-1)/self.tau
-        values = values.squeeze(2).unsqueeze(-1)
-
-        ct = ft*c + it*torch.matmul(values, keys.transpose(-2,-1)) # bs*h*dim*dim
-        nt = ft*n + it*keys #bs*h*dim*1
-        normalizer = torch.maximum(torch.abs(nt.transpose(-2,-1)@qt) ,torch.exp(-mt)) #bs*h*1*1
-        htilde = (ct@qt)/(normalizer+1e-6) #bs*h*dim*1
-        htilde = htilde.permute(0,3,1,2).contiguous().view(bs*seq,self.dim)
-        htilde = self.group_norm(htilde).view(bs,seq,self.dim)
-        return htilde,(ct,nt,mt)
 
     def reset_parameters(self):
         # forget gate initialization
@@ -113,7 +80,7 @@ class mLSTM_cell(nn.Module):
 
 
 class mLSTM_block(nn.Module):
-    def __init__(self,dim=128,qk_size=4):
+    def __init__(self,dim=128,qk_size=4,use_causal_conv=False):
         super(mLSTM_block,self).__init__()
         self.heads = (dim*2)//qk_size
         self.cell = mLSTM_cell(dim*2,qk_size)
@@ -123,48 +90,35 @@ class mLSTM_block(nn.Module):
         self.first_norm = nn.LayerNorm(dim)
         self.mlp1 = nn.Linear(dim,2*dim)
         self.mlp2 = nn.Linear(dim,2*dim)
-        self.causal_conv = CausalConv1d(dim*2,dim*2,qk_size)
+        if use_causal_conv:
+            self.conv = CausalConv1d(dim*2,dim*2,qk_size)
+        else:
+            self.conv = Conv2DLayer(in_channels=dim*2,out_channels=dim*2,kernel_size=3,padding=1,groups=dim*2)
         self.swish = SwishActivation(learnable=False)
         self.final_mlp = nn.Linear(dim*2,dim)
         self.learnable_skip = nn.Parameter(torch.ones(dim*2, requires_grad=True))
         self.dropout = nn.Dropout(0.2)
         self.id = nn.Identity()
     
-    def forward(self,x,use_conv=False,flip=False):
+    def forward(self,x,flip=False):
         inputs = x.clone()
         inputs = self.first_norm(inputs)
+        if flip:
+            inputs = torch.flip(inputs,dims=(1,))
         inputs_a = self.mlp1(inputs)
         inputs_b = self.swish(self.mlp2(inputs))
-        if flip:
-            inputs_a = torch.flip(inputs_a,dims=(1,))
-        if use_conv:
-            qk = self.causal_conv(inputs_a.permute(0,2,1)).permute(0,2,1)
-        else:
-            qk = self.id(inputs_a)
+        
+        qk = self.conv(inputs_a.permute(0,2,1)).permute(0,2,1)
+
         qk = self.swish(qk)
         q = self.block_q(qk)
         k = self.block_k(qk)
         v = self.block_v(inputs_a)
         out1 = self.cell(q,k,v)
         out1 = out1 + self.learnable_skip*qk
-        if flip:
-            out1 = torch.flip(out1,dims=(1,))
         out1 = out1 * inputs_b
-        out = self.dropout(self.final_mlp(out1))
+        out = self.final_mlp(out1)
+        if flip:
+            out = torch.flip(out,dims=(1,))
         return out+x
     
-    def step(self,x,state):
-        inputs = x.clone()
-        inputs = self.first_norm(inputs)
-        inputs_a = self.mlp1(inputs)
-        inputs_b = self.swish(self.mlp2(inputs))
-        qk = self.causal_conv(inputs_a.permute(0,2,1)).permute(0,2,1)
-        qk = self.swish(qk)
-        q = self.block_q(qk)
-        k = self.block_k(qk)
-        v = self.block_v(inputs_a)
-        out1, new_state = self.cell.recurrent_forward(state,q,k,v)
-        out1 = out1 + self.learnable_skip*qk
-        out1 = out1 * inputs_b
-        out = self.dropout(self.final_mlp(out1))
-        return out,new_state

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F 
 from einops import rearrange,repeat
+import math
 from einops.layers.torch import Rearrange
 
 class BlockDiagonalLinear(nn.Module):
@@ -132,3 +133,19 @@ class patch_embedding(nn.Module):
         #x = torch.cat((cls_tokens, x), dim=1)
         outputs = x + embedding
         return outputs
+
+
+class Conv2DLayer(nn.Conv2d):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def forward(self, x):
+        # Reshape input to (batch, dim, m, m)
+        batch,dim,L = x.size()
+        m = int(math.sqrt(L))
+        x = x.contiguous().view(batch, dim, m, m)
+
+        # Apply convolution
+        x = super().forward(x)
+        x = x.contiguous().view(batch, dim, L)
+        return x

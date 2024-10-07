@@ -110,7 +110,11 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss().to(device)
     num_epochs = args.epochs
     min_steps = ceil(len(train_dataset)/batch_size)
-    scheduler = CosineWithLinearWarmup(optimizer, warmup_steps=min_steps*warmup, total_steps=int(args.epochs * min_steps),max_lr=lr)
+    scheduler = CosineWithLinearWarmup( optimizer, 
+                                        warmup_steps=min_steps*warmup, 
+                                        total_steps=int(args.epochs * min_steps),
+                                        max_lr=lr,
+                                        min_lr=1e-5)
 
     # Train the model
     best_loss = float('inf')

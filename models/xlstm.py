@@ -28,9 +28,9 @@ class ViL(nn.Module):
 
     def forward(self,img):
         x = self.patch_embedding(img) # bs*n_p*dim
-        flip = 1
+        flip = 0
         for layer in self.layers:
-            x = layer(x,use_conv=True,flip=flip)
+            x = layer(x,flip=flip)
             flip = 1 - flip
 
         if self.classif =='bilateral_avg':
