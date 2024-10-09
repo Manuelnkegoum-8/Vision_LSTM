@@ -54,16 +54,13 @@ class mLSTM_cell(nn.Module):
 
         # Create a lower triangular mask (including diagonal)
         Dtilde = F_act + itilde.unsqueeze(-1).transpose(-2,-1)
-        with torch.no_grad():
-            max_d = torch.max(Dtilde,dim=-1, keepdim=True)[0]
+        max_d, _  = torch.max(Dtilde,dim=-1, keepdim=True)
         D = torch.exp(Dtilde - max_d)
         queries = q.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxh*Txdim
         keys = k.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxhxTxdim
         values = v.view(bs, seq, self.heads, self.head_dim).permute(0,2,1,3) # bsxhxTxdim
-
         Ctilde = torch.matmul(queries, keys.transpose(-2,-1)) * D/self.tau # # bsxhxTxT
-        maxit = Ctilde.sum(dim=-1,keepdim=True)
-        maxit = torch.maximum(torch.abs(maxit),torch.exp(-max_d))
+        maxit = torch.maximum(Ctilde.sum(dim=-1,keepdim=True).abs(),torch.exp(-max_d))
         Htilde = (Ctilde@values)/(maxit + 1e-6)
         Htilde = Htilde.permute(0,2,1,3).contiguous().view(bs*seq,self.dim)
         Htilde = self.group_norm(Htilde).view(bs,seq,self.dim) #mult head group norm
@@ -120,5 +117,5 @@ class mLSTM_block(nn.Module):
         out = self.final_mlp(out1)
         if flip:
             out = torch.flip(out,dims=(1,))
-        return out+x
+        return out #+ x
     

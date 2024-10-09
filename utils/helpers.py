@@ -33,6 +33,7 @@ def create_cifar_datasets(height,width):
     # Training transforms
     train_transform = v2.Compose([
         v2.Resize((height,width)),  # Resize to slightly larger size for RandomResizedCrop
+        v2.AutoAugment(v2.AutoAugmentPolicy.CIFAR10),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True),
         #v2.Normalize() 

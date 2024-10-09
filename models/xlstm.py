@@ -10,6 +10,7 @@ class ViL(nn.Module):
         super(ViL,self).__init__()
         self.layers = nn.ModuleList()
         self.classif = config.classif
+        self.norm = nn.LayerNorm(config.dim,config.dim)
         for i in range(config.m_layers):
             block = mLSTM_block(config.dim,config.qk_size)
             self.layers.append(block)
@@ -32,7 +33,7 @@ class ViL(nn.Module):
         for layer in self.layers:
             x = layer(x,flip=flip)
             flip = 1 - flip
-
+        x = self.norm(x)
         if self.classif =='bilateral_avg':
             out = 0.5*(x[:,0,:]+x[:,-1,:])
         else :

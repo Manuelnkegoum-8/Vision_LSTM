@@ -17,8 +17,7 @@ class BlockDiagonalLinear(nn.Module):
         self.block_out_size = output_size // num_blocks  # Output size of each block
 
         # Create weight matrices for each block and bias
-        self.weights = nn.ParameterList([nn.Parameter(torch.randn(self.block_out_size, self.block_in_size)) 
-                                         for _ in range(num_blocks)])
+        self.weight = nn.Parameter(torch.randn(self.num_blocks, self.block_in_size, self.block_out_size))
         self.need_bias = bias
         if bias:
             self.bias = nn.Parameter(torch.randn(output_size))
@@ -27,16 +26,20 @@ class BlockDiagonalLinear(nn.Module):
 
         
     def forward(self, x):
-        block_diag = torch.block_diag(*self.weights)
-        out = torch.matmul(x, block_diag) 
+        batch_size,N,dim = x.size()
+        x_blocks = x.contiguous().view(batch_size, N, self.num_blocks, self.block_in_size)
+        # Apply block diagonal matrix multiplication
+        out = torch.einsum('bnki,kij->bnkj', x_blocks, self.weight)
+        out = out.contiguous().view(batch_size, N, dim)
         if self.need_bias:
             out = out + self.bias
         return out
 
     def _reset_parameters(self):
         # Xavier initialization for weights
-        for weight in self.weights:
-            nn.init.xavier_uniform_(weight)
+        nn.init.xavier_uniform_(self.weight)
+        if self.need_bias:
+            nn.init.zeros_(self.bias.data)
 
 class CausalConv1d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, dilation=1):
@@ -124,14 +127,11 @@ class patch_embedding(nn.Module):
 
     def forward(self, x):
         #x bs,h,w,c
-        embedding = self.pos_embedding.to(x.device)
         #projection on the dim of model
         x = self.projection(x)
         bs,dim,h,w = x.size()
         x = x.permute(0,2,3,1).contiguous().view(bs,h*w,dim)
-        #cls_tokens = repeat(self.class_token, '() n d -> b n d', b = x.size(0))
-        #x = torch.cat((cls_tokens, x), dim=1)
-        outputs = x + embedding
+        outputs = x + self.pos_embedding
         return outputs
 
 

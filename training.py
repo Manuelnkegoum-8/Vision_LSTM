@@ -99,6 +99,7 @@ if __name__ == '__main__':
     print(f"Number of parameters: {total_params}")
     model = model.to(device)
     optim_groups = model.no_weight_decay()
+
     optimizer = torch.optim.AdamW(
         (
             {"weight_decay": weight_decay, "params": optim_groups[1]},
@@ -110,11 +111,12 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss().to(device)
     num_epochs = args.epochs
     min_steps = ceil(len(train_dataset)/batch_size)
-    scheduler = CosineWithLinearWarmup( optimizer, 
+    scheduler = None 
+    """CosineWithLinearWarmup( optimizer, 
                                         warmup_steps=min_steps*warmup, 
                                         total_steps=int(args.epochs * min_steps),
                                         max_lr=lr,
-                                        min_lr=1e-5)
+                                        min_lr=1e-5)"""
 
     # Train the model
     best_loss = float('inf')
@@ -127,18 +129,17 @@ if __name__ == '__main__':
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         scheduler.load_state_dict(checkpoint['scheduler'])
         start_epoch = checkpoint['epoch']
-    
     print(Fore.LIGHTGREEN_EX+'='*100)
     print("[INFO] Begin training for {0} epochs".format(final_epoch-start_epoch-1))
     print('='*100+Style.RESET_ALL)
     # Initialize TensorBoard writer
     writer = SummaryWriter('vision_lstm_xp')
+    step = 0
     for epoch in range(start_epoch+1,final_epoch):
-        train_loss,train_acc = train_epoch(model,train_loader,optimizer,scheduler,criterion,scaler,args.amp,device,writer,epoch)
+        train_loss,train_acc = train_epoch(model,train_loader,optimizer,scheduler,criterion,scaler,args.amp,device,writer,epoch,step)
         # Log to TensorBoard
         writer.add_scalar('Loss/Train', train_loss, epoch)
         writer.add_scalar('Accuracy/Train', train_acc, epoch)
-        torch.cuda.empty_cache()
         if epoch%args.freq==0 or epoch==args.epochs-1:
             valid_loss,val_acc = validate(model,val_loader,criterion,device,writer,epoch)
             writer.add_scalar('Loss/Validation', valid_loss, epoch)
@@ -149,7 +150,7 @@ if __name__ == '__main__':
                         'model_state_dict': model.state_dict(),
                         'epoch': epoch,
                         'optimizer_state_dict': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
+                        #'scheduler': scheduler.state_dict(),
                     }, f"ckpt_lm.pt")
     writer.close()
     print(Fore.GREEN+'='*100)

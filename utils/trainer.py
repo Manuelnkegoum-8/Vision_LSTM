@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 
-def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed_prec, device,writer,epoch):
+def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed_prec, device,writer,epoch,step):
     avg_loss, avg_acc = 0.0, 0.0
     n = 0.0
     model.train()
@@ -33,7 +33,8 @@ def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(optimizer)
             scaler.update()
-            scheduler.step()
+            #scheduler.step()
+            writer.add_scalar('lr/Train', optimizer.param_groups[0]['lr'], step)
             avg_loss += loss.item() * bs
             acc = calculate_accuracy(preds,labels)
             avg_acc += acc * bs
@@ -41,7 +42,7 @@ def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed
             # Update the progress bar with the current loss
             pbar.set_postfix({'loss':loss.item(), 'accuracy': acc})
             pbar.update(1)
-
+            step+=1
     avg_loss /= n
     avg_acc /= n
     return avg_loss,avg_acc
