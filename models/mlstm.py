@@ -80,6 +80,7 @@ class mLSTM_block(nn.Module):
     def __init__(self,dim=128,qk_size=4,use_causal_conv=False):
         super(mLSTM_block,self).__init__()
         self.heads = (dim*2)//qk_size
+        self.dim = dim
         self.cell = mLSTM_cell(dim*2,qk_size)
         self.block_q = BlockDiagonalLinear(dim*2,dim*2,self.heads,True)
         self.block_k = BlockDiagonalLinear(dim*2,dim*2,self.heads,True)
@@ -95,8 +96,7 @@ class mLSTM_block(nn.Module):
         self.final_mlp = nn.Linear(dim*2,dim)
         self.learnable_skip = nn.Parameter(torch.ones(dim*2, requires_grad=True))
         self.dropout = nn.Dropout(0.2)
-        self.id = nn.Identity()
-    
+        self.reset_parameters()
     def forward(self,x,flip=False):
         inputs = x.clone()
         inputs = self.first_norm(inputs)
@@ -117,5 +117,14 @@ class mLSTM_block(nn.Module):
         out = self.final_mlp(out1)
         if flip:
             out = torch.flip(out,dims=(1,))
-        return out #+ x
+        return out + x
     
+    def reset_parameters(self):
+        # init inproj
+        small_init_(self.mlp1.weight, dim=self.dim)
+        if self.mlp1.bias is not None:
+            nn.init.zeros_(self.mlp1.bias)
+        # init outproj (original mLSTM uses num_blocks=1)
+        wang_init_(self.mlp2.weight, dim=self.dim, num_blocks=1)
+        if self.mlp2.bias is not None:
+            nn.init.zeros_(self.mlp2.bias)

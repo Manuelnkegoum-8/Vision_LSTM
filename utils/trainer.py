@@ -33,7 +33,7 @@ def train_epoch(model, dataloader, optimizer, scheduler, criterion, scaler,mixed
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(optimizer)
             scaler.update()
-            #scheduler.step()
+            scheduler.step()
             writer.add_scalar('lr/Train', optimizer.param_groups[0]['lr'], step)
             avg_loss += loss.item() * bs
             acc = calculate_accuracy(preds,labels)

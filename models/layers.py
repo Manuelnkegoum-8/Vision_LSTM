@@ -89,7 +89,22 @@ def equidistant_bias_init(tensor, a, b):
     with torch.no_grad():
         tensor.copy_(equidistant_values)
 
+def small_init_(param: torch.Tensor, dim: int) -> torch.Tensor:
+    """
+    Fills the input Tensor with values according to the method described in Transformers without Tears: Improving
+    the Normalization of Self-Attention - Nguyen, T. & Salazar, J. (2019), using a normal distribution.
+    Adopted from https://github.com/EleutherAI/gpt-neox/blob/main/megatron/model/init_functions.py.
+    """
+    std = math.sqrt(2 / (5 * dim))
+    torch.nn.init.normal_(param, mean=0.0, std=std)
+    return param
 
+
+def wang_init_(param: torch.Tensor, dim: int, num_blocks: int):
+    """ Adopted from https://github.com/EleutherAI/gpt-neox/blob/main/megatron/model/init_functions.py. """
+    std = 2 / num_blocks / math.sqrt(dim)
+    torch.nn.init.normal_(param, mean=0.0, std=std)
+    return param
 class feedforward(nn.Module):
     def __init__(self,embed_dim=768,ff_hidden_dim=1024,dropout_rate = 0.1):
         super().__init__()
