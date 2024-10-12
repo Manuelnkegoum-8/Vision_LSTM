@@ -22,6 +22,9 @@ class mLSTM_cell(nn.Module):
         self.reset_parameters()
 
     def create_forget_gate(self,seq,ftilde,bs):
+        """
+        Adopted from https://github.com/NX-AI/vision-lstm
+        """
         lower_mask = torch.tril(torch.ones((seq,seq),device=ftilde.device)).bool()
         tmp = F.logsigmoid(ftilde).unsqueeze(-1)
         uu = torch.cat(

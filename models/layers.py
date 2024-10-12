@@ -71,6 +71,7 @@ class SwishActivation(nn.Module):
         return x * torch.sigmoid(self.beta * x)
 
 def equidistant_bias_init(tensor, a, b):
+    
     """
     Initializes the bias of a given tensor with equidistant values between a and b.
     
