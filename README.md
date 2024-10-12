@@ -55,7 +55,7 @@ The performance of the model on MNIST and CIFAR datasets is summarized below:
 | Dataset    |  mLSTM blocks | Test Accuracy (%) |
 |------------|---------------|-------------------|
 | MNIST      | 4             | 99.33             |
-| CIFAR-10   | 4             | 84.57             |
+| CIFAR-10   | 4             | 84.96             |
 
 
 ## References
