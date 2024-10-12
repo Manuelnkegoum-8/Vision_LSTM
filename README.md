@@ -8,8 +8,8 @@
 This project implements a Vision LSTM (ViL) architecture, which adapts Long Short-Term Memory (LSTM) for computer vision tasks. ViL extends traditional LSTMs with scalable and parallel processing capabilities to handle the challenges of vision data, particularly sequences of image patches, and integrates both top-down and bottom-up processing flows.
 
 The model was trained and tested on two datasets:
-1. **MNIST**: Handwritten digit classification for 10 epochs
-2. **CIFAR**: Object classification in 32x32 color images.
+1. **MNIST**: Handwritten digit classification.
+2. **CIFAR10**: Object classification in 32x32 color images.
 
 ## Architecture
 Vision LSTM (ViL) uses the xLSTM backbone, designed specifically for vision tasks. The architecture processes image patches sequentially, allowing for long-range dependencies to be captured. Alternating layers of LSTMs process patch tokens both from top-to-bottom and bottom-to-top, improving the model's ability to capture fine-grained and holistic image details. This makes ViL a powerful architecture for tasks such as image classification and segmentation.
@@ -46,20 +46,16 @@ For more detailed information, you can refer to [Vision LSTM Paper](https://bran
 
 ### Configuration
 - **Image size**: 32x32
-- **Patch size**: 8x8
+- **Patch size**: 4x4
 - **Embedding dimension**: 192
-- **m_lstm layers**: 4
 - **batch size**: 256
 
 The performance of the model on MNIST and CIFAR datasets is summarized below:
 
-| Dataset    | Test Accuracy (%) |
-|------------|-------------------|
-| MNIST      | 97.33             |
-| CIFAR-10   | 95.28             |
-
-The results demonstrate that the ViL model achieves state-of-the-art performance on MNIST and performs competitively on CIFAR-10, showcasing its versatility across both grayscale and color image tasks.
-
+| Dataset    |  mLSTM blocks | Test Accuracy (%) |
+|------------|---------------|-------------------|
+| MNIST      | 4             | 99.33             |
+| CIFAR-10   | 4             | 84.57             |
 
 
 ## References
